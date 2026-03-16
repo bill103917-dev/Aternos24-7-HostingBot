@@ -7,6 +7,22 @@ const config = require('./settings.json');
 const express = require('express');
 const http = require('http');
 const https = require('https');
+// ============================================================
+// 機器人狀態追蹤 - 必須定義在 app.get 之前
+// ============================================================
+let botState = {
+  connected: false,
+  lastActivity: Date.now(),
+  reconnectAttempts: 0,
+  startTime: Date.now(),
+  errors: [],
+  wasThrottled: false
+};
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// 下面才接你剛才換掉的 app.get('/', ...) 介面程式碼
 
 // ============================================================
 // EXPRESS 伺服器 - 保持服務在線 (Render/Aternos)
