@@ -9,28 +9,18 @@ const http = require('http');
 const https = require('https');
 
 // ============================================================
-// EXPRESS SERVER - Keep Render/Aternos alive
+// EXPRESS 伺服器 - 保持服務在線 (Render/Aternos)
 // ============================================================
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Bot state tracking
-let botState = {
-  connected: false,
-  lastActivity: Date.now(),
-  reconnectAttempts: 0,
-  startTime: Date.now(),
-  errors: [],
-  wasThrottled: false
-};
-
-// Health check endpoint for monitoring
+// 健康檢查儀表板介面
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="zh-TW">
       <head>
-        <title>${config.name} Dashboard</title>
+        <title>${config.name} 控制台</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
@@ -46,7 +36,7 @@ app.get('/', (req, res) => {
           }
 
           body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', "Microsoft JhengHei", sans-serif;
             background: var(--bg);
             color: var(--text-main);
             display: flex;
@@ -144,30 +134,6 @@ app.get('/', (req, res) => {
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
           }
 
-          .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            background: var(--accent);
-            color: #0f172a;
-            padding: 1rem 2rem;
-            border-radius: 1rem;
-            font-weight: 700;
-            text-decoration: none;
-            margin-top: 1.5rem;
-            transition: all 0.2s;
-            box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(45, 212, 191, 0.6);
-            filter: brightness(1.1);
-          }
-
           .footer {
             margin-top: 1.5rem;
             font-size: 0.8125rem;
@@ -177,36 +143,34 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>🤖 ${config.name}</h1>
+          <h1>AFK機器人</h1>
           
           <div class="card">
-            <div class="label">Status</div>
+            <div class="label">連線狀態</div>
             <div class="value">
               <span id="status-dot" class="dot pulse"></span>
-              <span id="status-text">Connecting...</span>
+              <span id="status-text">連線中...</span>
             </div>
           </div>
 
           <div class="card">
-            <div class="label">Uptime</div>
-            <div class="value" id="uptime-text">0h 0m 0s</div>
+            <div class="label">運行時間</div>
+            <div class="value" id="uptime-text">0時 0分 0秒</div>
           </div>
 
           <div class="card">
-            <div class="label">Coordinates</div>
+            <div class="label">當前座標</div>
             <div class="value">
-              📍 <span id="coords-text">Searching...</span>
+              📍 <span id="coords-text">搜尋中...</span>
             </div>
           </div>
 
           <div class="card">
-            <div class="label">Server</div>
+            <div class="label">伺服器位址</div>
             <div class="value" style="font-size: 1.1rem; color: #5eead4;">${config.server.ip}</div>
           </div>
-
-          <a href="/tutorial" class="btn">📘 View Setup Guide</a>
           
-          <div class="footer">Auto-refreshing every 5s</div>
+          <div class="footer">系統每 5 秒自動刷新</div>
         </div>
 
         <script>
@@ -217,7 +181,7 @@ app.get('/', (req, res) => {
 
           function formatUptime(s) {
             const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-            return h + 'h ' + m + 'm ' + sec + 's';
+            return h + '時 ' + m + '分 ' + sec + '秒';
           }
 
           async function update() {
@@ -226,10 +190,10 @@ app.get('/', (req, res) => {
               const data = await r.json();
               
               if (data.status === 'connected') {
-                statusText.innerText = 'Online & Running';
+                statusText.innerText = '在線運行中';
                 statusDot.className = 'dot pulse';
               } else {
-                statusText.innerText = 'Reconnecting...';
+                statusText.innerText = '重新連線中...';
                 statusDot.className = 'dot offline pulse';
               }
 
@@ -238,10 +202,10 @@ app.get('/', (req, res) => {
               if (data.coords) {
                 coordsText.innerText = Math.floor(data.coords.x) + ', ' + Math.floor(data.coords.y) + ', ' + Math.floor(data.coords.z);
               } else {
-                coordsText.innerText = 'Searching Position...';
+                coordsText.innerText = '搜尋位置中...';
               }
             } catch (e) {
-              statusText.innerText = 'System Offline';
+              statusText.innerText = '系統已離線';
               statusDot.className = 'dot offline';
             }
           }
@@ -253,57 +217,8 @@ app.get('/', (req, res) => {
     </html>
   `);
 });
-app.get('/tutorial', (req, res) => {
-  res.send(`
-  < html >
-      <head>
-        <title>${config.name} - Setup Guide</title>
-        <style>
-          body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #cbd5e1; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
-          h1, h2 { color: #2dd4bf; }
-          h1 { border-bottom: 2px solid #334155; padding-bottom: 10px; }
-          .card { background: #1e293b; padding: 25px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
-          a { color: #38bdf8; text-decoration: none; }
-          code { background: #334155; padding: 2px 6px; border-radius: 4px; color: #e2e8f0; font-family: monospace; }
-          .btn-home { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #334155; color: white; border-radius: 6px; text-decoration: none; }
-        </style>
-      </head>
-      <body>
-        <a href="/" class="btn-home">Back to Dashboard</a>
-        <h1>Setup Guide (Under 15 Minutes)</h1>
-        <div class="card">
-          <h2>Step 1: Configure Aternos</h2>
-          <ol>
-            <li>Go to <strong>Aternos</strong>.</li>
-            <li>Install <strong>Paper/Bukkit</strong> software.</li>
-            <li>Enable <strong>Cracked</strong> mode (Green Switch).</li>
-            <li>Install Plugins: <code>ViaVersion</code>, <code>ViaBackwards</code>, <code>ViaRewind</code>.</li>
-          </ol>
-        </div>
-        <div class="card">
-          <h2>Step 2: GitHub Setup</h2>
-          <ol>
-            <li>Download this code as ZIP and extract.</li>
-            <li>Edit <code>settings.json</code> with your IP/Port.</li>
-            <li>Upload all files to a new <strong>GitHub Repository</strong>.</li>
-          </ol>
-        </div>
-        <div class="card">
-          <h2>Step 3: Render (Free 24/7 Hosting)</h2>
-          <ol>
-            <li>Go to <a href="https://render.com" target="_blank">Render.com</a> and create a Web Service.</li>
-            <li>Connect your GitHub.</li>
-            <li>Build Command: <code>npm install</code></li>
-            <li>Start Command: <code>npm start</code></li>
-            <li><strong>Magic:</strong> The bot automatically pings itself to stay awake!</li>
-          </ol>
-        </div>
-        <p style="text-align: center; margin-top: 40px; color: #64748b;">AFK Bot Dashboard</p>
-      </body>
-    </html >
-  `);
-});
 
+// 健康狀態 API
 app.get('/health', (req, res) => {
   res.json({
     status: botState.connected ? 'connected' : 'disconnected',
@@ -315,7 +230,9 @@ app.get('/health', (req, res) => {
   });
 });
 
+// 存活檢測
 app.get('/ping', (req, res) => res.send('pong'));
+
 
 // FIX: handle port conflict gracefully - try next port if taken
 const server = app.listen(PORT, '0.0.0.0', () => {
