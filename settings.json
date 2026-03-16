@@ -31,7 +31,7 @@
       "repeat": true,
       "repeat-delay": 120,
       "messages": [
-        "hi我是AFK機器人:>",
+        "hi我是AFK機器人:>"
       ]
     },
     "chat-log": true,
