@@ -27,8 +27,6 @@ const PORT = process.env.PORT || 5000;
 // ============================================================
 // EXPRESS 伺服器 - 保持服務在線 (Render/Aternos)
 // ============================================================
-const app = express();
-const PORT = process.env.PORT || 5000;
 
 // 健康檢查儀表板介面
 app.get('/', (req, res) => {
