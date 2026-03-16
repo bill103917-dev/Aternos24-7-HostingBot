@@ -189,11 +189,11 @@ app.get('/', (req, res) => {
 
           <div class="card">
             <div class="label">已啟動機器人</div>
-            <div class="value" id="uptime-text">0h 0m 0s</div>
+            <div class="value" id="uptime-text">0時 0分 0秒</div>
           </div>
 
           <div class="card">
-            <div class="label">Coordinates</div>
+            <div class="label">地點</div>
             <div class="value">
               📍 <span id="coords-text">尋找中</span>
             </div>
@@ -206,7 +206,7 @@ app.get('/', (req, res) => {
 
           
           
-          <div class="footer">Auto-refreshing every 5s</div>
+          <div class="footer">每五秒自動整理</div>
         </div>
 
         <script>
@@ -226,10 +226,10 @@ app.get('/', (req, res) => {
               const data = await r.json();
               
               if (data.status === 'connected') {
-                statusText.innerText = 'Online & Running';
+                statusText.innerText = 線上&啟動';
                 statusDot.className = 'dot pulse';
               } else {
-                statusText.innerText = 'Reconnecting...';
+                statusText.innerText = '重新連線...';
                 statusDot.className = 'dot offline pulse';
               }
 
